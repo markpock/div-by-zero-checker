@@ -1,14 +1,9 @@
 # This repository
 
-This repository contains a template for an abstract interpretation implementation
-assignment. You can find the full instructions for the assignment in `INSTRUCTIONS.md`
-in this directory, or on your course webpage.
+This repository contains an implementation of a simple divide by zero abstract
+interpretation template for an assignment.
 
-The remainder of this README is the user-facing documentation for the analysis
-you will build.
-
-You should remove, from your version, everything above and including this line.
-
+The remainder of this README is the user-facing documentation for the analysis built.
 
 # The Divide By Zero Checker
 
