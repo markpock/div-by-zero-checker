@@ -1,6 +1,8 @@
 package org.checkerframework.checker.dividebyzero;
 
 import com.sun.source.tree.*;
+
+import java.beans.Expression;
 import java.lang.annotation.Annotation;
 import java.util.EnumSet;
 import java.util.Set;
@@ -29,7 +31,10 @@ public class DivByZeroVisitor extends BaseTypeVisitor<DivByZeroAnnotatedTypeFact
   private boolean errorAt(BinaryTree node) {
     // A BinaryTree can represent any binary operator, including + or -.
     // TODO
-    return false;
+    if (!DIVISION_OPERATORS.contains(node.getKind())) return false;
+    ExpressionTree right = node.getRightOperand();
+    if (!isInt(right)) return false;
+    return hasAnnotation(right, AnyInteger.class) || hasAnnotation(right, Zero.class);
   }
 
   /**
@@ -43,7 +48,9 @@ public class DivByZeroVisitor extends BaseTypeVisitor<DivByZeroAnnotatedTypeFact
     // A CompoundAssignmentTree represents any binary operator combined with an assignment,
     // such as "x += 10".
     // TODO
-    return false;
+    if (!DIVISION_OPERATORS.contains(node.getKind())) return false;
+    ExpressionTree right = node.getExpression();
+    return hasAnnotation(right, AnyInteger.class) || hasAnnotation(right, Zero.class);
   }
 
   // ========================================================================

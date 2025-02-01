@@ -76,8 +76,24 @@ public class DivByZeroTransfer extends CFTransfer {
    */
   private AnnotationMirror refineLhsOfComparison(
       Comparison operator, AnnotationMirror lhs, AnnotationMirror rhs) {
-    // TODO
-    return lhs;
+    if (rhs.equals(bottom())) return bottom();
+    if (rhs.equals(top())) return top();
+
+    switch (operator) {
+      case EQ:
+        return glb(equal(lhs, reflect(Nonzero.class)) ? reflect(Nonzero.class) : reflect(Zero.class), lhs);
+      case GE:
+        return lhs;
+      case GT:
+        return glb(equal(rhs, reflect(Zero.class)) ? reflect(Nonzero.class) : top(), lhs);
+      case LE:
+        return lhs;
+      case LT:
+        return glb(equal(rhs, reflect(Zero.class)) ? reflect(Nonzero.class) : top(), lhs);
+      case NE:
+        return glb(equal(rhs, reflect(Nonzero.class)) ? reflect(Zero.class) : reflect(Nonzero.class), lhs);
+    }
+    return top();
   }
 
   /**
@@ -98,8 +114,73 @@ public class DivByZeroTransfer extends CFTransfer {
   private AnnotationMirror arithmeticTransfer(
       BinaryOperator operator, AnnotationMirror lhs, AnnotationMirror rhs) {
     // TODO
+    switch (operator) {
+      case DIVIDE:
+        return divideTransfer(lhs, rhs);
+      case MINUS:
+        return addTransfer(lhs, rhs);
+      case MOD:
+        return divideTransfer(lhs, rhs);
+      case PLUS:
+        return addTransfer(lhs, rhs);
+      case TIMES:
+        return multiplyTransfer(lhs, rhs);
+    }
     return top();
   }
+
+  private AnnotationMirror addTransfer(AnnotationMirror lhs, AnnotationMirror rhs) {
+    if (equal(lhs, reflect(Never.class)) || equal(rhs, reflect(Never.class))) {
+      return reflect(Never.class);
+    }
+    if (equal(lhs, reflect(AnyInteger.class)) || equal(rhs, reflect(AnyInteger.class))) {
+      return reflect(AnyInteger.class);
+    }
+    if ((equal(lhs, reflect(Nonzero.class)) && equal(rhs, reflect(Zero.class))) ||
+        (equal(lhs, reflect(Zero.class)) && equal(rhs, reflect(Nonzero.class)))) {
+      return reflect(Nonzero.class);
+    }
+    if (equal(lhs, reflect(Zero.class)) && equal(rhs, reflect(Zero.class))) {
+      return reflect(Zero.class);
+    }
+    if (equal(lhs, reflect(Nonzero.class)) && equal(rhs, reflect(Nonzero.class))) {
+      return reflect(AnyInteger.class);
+    }
+    return top();
+  }
+
+  private AnnotationMirror multiplyTransfer(AnnotationMirror lhs, AnnotationMirror rhs) {
+    if (equal(lhs, reflect(Never.class)) || equal(rhs, reflect(Never.class))) {
+      return reflect(Never.class);
+    }
+    if (equal(lhs, reflect(AnyInteger.class)) || equal(rhs, reflect(AnyInteger.class))) {
+      return reflect(AnyInteger.class);
+    }
+    if (equal(lhs, reflect(Zero.class)) || equal(rhs, reflect(Zero.class))) {
+      return reflect(Zero.class);
+    }
+    if (equal(lhs, reflect(Nonzero.class)) && equal(rhs, reflect(Nonzero.class))) {
+      return reflect(AnyInteger.class);
+    }
+    return top();
+  }
+
+  private AnnotationMirror divideTransfer(AnnotationMirror lhs, AnnotationMirror rhs) {
+    if (equal(lhs, reflect(Never.class)) || equal(rhs, reflect(Never.class))) {
+      return reflect(Never.class);
+    }
+    if (equal(lhs, reflect(AnyInteger.class)) || equal(rhs, reflect(AnyInteger.class))) {
+      return reflect(AnyInteger.class);
+    }
+    if (equal(rhs, reflect(Zero.class))) {
+      return reflect(AnyInteger.class);
+    }
+    if (equal(rhs, reflect(Nonzero.class))) {
+      return reflect(AnyInteger.class);
+    }
+    return top();
+  }
+
 
   // ========================================================================
   // Useful helpers
